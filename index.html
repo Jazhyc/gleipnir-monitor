@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gleipnir: AI control monitors that decide in one forward pass</title>
+<meta name="description" content="Small open-weight monitors for AI agent trajectories that learn the decision of a frontier teacher and score a trajectory in a single forward pass.">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1f1e1b; --muted: #5f5d57; --line: #e3e0d8;
+    --card: #ffffff; --accent: #5146c9; --accent-fg: #ffffff; --code: #f2f0ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #ecebe6; --muted: #a7a59d; --line: #34332f;
+      --card: #1f1e1b; --accent: #8f87f0; --accent-fg: #161614; --code: #24231f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 56px 16px 80px; }
+  h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; margin: 48px 0 12px; }
+  p { margin: 0 0 14px; }
+  .sub { color: var(--muted); font-size: 1.05rem; margin-bottom: 20px; }
+  .authors { margin: 0 0 24px; }
+  .authors span { white-space: nowrap; margin-right: 18px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; }
+  .links a {
+    display: inline-block; padding: 8px 16px; border-radius: 999px;
+    background: var(--accent); color: var(--accent-fg); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+  }
+  .links a.todo { opacity: 0.55; pointer-events: none; }
+  a { color: var(--accent); }
+  figure { margin: 28px 0 0; }
+  figure .img { background: #ffffff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--muted); font-size: 0.92rem; margin-top: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  pre {
+    background: var(--code); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; font-size: 0.85rem; line-height: 1.5;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  footer { margin-top: 56px; color: var(--muted); font-size: 0.88rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Lightweight Restraints for Powerful Agents</h1>
+  <p class="sub">AI control monitors that decide in one forward pass</p>
+  <p class="authors"><span>Jeremias Ferrao</span><span>Abhinav Rajeev Kumar</span></p>
+
+  <nav class="links">
+    <a class="todo" href="#" title="Link added when the report is public">Paper</a>
+    <a href="https://github.com/Jazhyc/gleipnir">Code</a>
+    <a href="#models">Models</a>
+    <a href="https://huggingface.co/datasets/Jazhyc/gleipnir-kimi-k3-tool-trajectory-logits">Training data</a>
+    <a href="https://github.com/users/Jazhyc/packages/container/package/gleipnir-serve">Serving image</a>
+  </nav>
+
+  <h2>Abstract</h2>
+  <p>Monitors that review the actions of AI agents add cost and latency to every action they check, and the strongest monitors reason at length before they answer. We present Gleipnir, small open-weight monitors that learn the decision of a frontier teacher directly and score an agent trajectory in a single forward pass, together with a serving stack optimized for this workload. On a suite of six held-out AI control benchmarks, Gleipnir 27B matches the strongest reasoning monitor (0.951 against 0.942 mean pAUROC@20) at 229 times lower cost, and scores 0.055 above the strongest decision model at the same cost. On attacks built to evade monitors and on reward hacking by other agents, Gleipnir, like other low-cost monitors, misses many harmful runs, so it suits a first line of defense rather than a sole safeguard. We release the code, teacher probabilities, weights and serving image under the MIT licence.</p>
+  <p class="note">The name comes from the ribbon in Norse myth that binds the wolf Fenrir: as thin as silk, yet stronger than any chain.</p>
+
+  <figure>
+    <div class="img"><img src="assets/ood_frontier.svg" alt="Mean pAUROC@20 on the six held-out benchmarks against inference cost per 1,000 evaluations, on a log scale. Gleipnir 27B sits at the top left: as accurate as the strongest reasoning monitor at a small fraction of its cost."></div>
+    <figcaption>Gleipnir 27B matches the strongest reasoning monitor at 229 times lower cost on demand and 532 times lower with committed use. Mean pAUROC@20 on the six held-out benchmarks against inference cost per 1,000 evaluations (log scale).</figcaption>
+  </figure>
+
+  <h2 id="models">Models</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Model</th><th>Merged BF16 checkpoint</th><th>LoRA adapter</th><th>Base model</th></tr></thead>
+    <tbody>
+      <tr><td>Gleipnir 4B</td>
+        <td><a href="https://huggingface.co/Jazhyc/Gleipnir-4B-BF16">Jazhyc/Gleipnir-4B-BF16</a></td>
+        <td><a href="https://huggingface.co/Jazhyc/Gleipnir-4B-LoRA">Jazhyc/Gleipnir-4B-LoRA</a></td>
+        <td>Qwen3.5-4B</td></tr>
+      <tr><td>Gleipnir 27B</td>
+        <td><a href="https://huggingface.co/Jazhyc/Gleipnir-27B-BF16">Jazhyc/Gleipnir-27B-BF16</a></td>
+        <td><a href="https://huggingface.co/Jazhyc/Gleipnir-27B-LoRA">Jazhyc/Gleipnir-27B-LoRA</a></td>
+        <td>Qwen3.8-27B</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Use the merged checkpoint to run the monitor and the adapter to fine-tune it further. The model cards give the instruction and a complete example.</p>
+
+  <h2>Quickstart</h2>
+  <p>On one NVIDIA B200 or B300, the serving image downloads the checkpoint and serves the optimized stack:</p>
+<pre><code>docker run --gpus all -p 8000:8000 \
+  -v "$HOME/gleipnir-models:/models" -e GLEIPNIR_MODEL_CACHE=/models \
+  ghcr.io/jazhyc/gleipnir-serve:1.2 4b    # or 27b
+
+curl -s localhost:8000/v1/monitor/score -H 'Content-Type: application/json' \
+  -d '{"model": "monitor", "prompt": "&lt;rendered prompt ending in Prediction:&gt;"}'</code></pre>
+  <p>On any other GPU, the merged checkpoints run with stock vLLM or Transformers; the <a href="https://github.com/Jazhyc/gleipnir#running-inference">README</a> gives both recipes. Because our thresholds come from benchmarks, set your own threshold on your benign traffic before you deploy a monitor.</p>
+
+  <h2>Citation</h2>
+<pre><code>@techreport{ferrao2026gleipnir,
+  title  = {Lightweight Restraints for Powerful Agents: AI Control Monitors That Decide in One Forward Pass},
+  author = {Ferrao, Jeremias and Rajeev Kumar, Abhinav},
+  year   = {2026},
+  note   = {Technical report}
+}</code></pre>
+
+  <footer>Code, weights and data are released under the MIT licence.</footer>
+</main>
+</body>
+</html>
