@@ -9,4 +9,8 @@ training data and the serving image.
 - `assets/ood_frontier.svg`: Figure 1 of the report, copied from
   `outputs/reports/gleipnir_v1_technical_report/assets/` in the main repo.
 
-Open items: the Paper button and the BibTeX wait for the public report.
+- `gleipnir_v1_report.pdf`: the technical report as submitted to arXiv
+  (`outputs/reports/gleipnir_v1_technical_report/report.pdf` in the main repo).
+
+Open items: point the Paper button at arXiv and update the BibTeX once the
+arXiv identifier is assigned.
